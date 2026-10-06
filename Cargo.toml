@@ -1,0 +1,47 @@
+[package]
+name = "toknote"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98.1"
+description = "Privacy-first token usage, estimated cost and limits from local coding-agent logs"
+license = "MIT"
+publish = false
+
+[features]
+default = ["live"]
+# Opt-in network code. `--no-default-features` builds an offline-only binary without any HTTP code.
+live = ["dep:ureq"]
+
+[dependencies]
+chrono = { version = "0.4.45", default-features = false, features = [
+  "clock",
+  "std",
+] }
+clap = { version = "4.6", default-features = false, features = [
+  "std",
+  "derive",
+] }
+crossterm = "0.29"
+dirs = "6"
+libc = "0.2"
+memchr = "2.8"
+ratatui = { version = "0.30", default-features = false, features = [
+  "crossterm",
+] }
+rusqlite = { version = "0.40", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["raw_value"] }
+ureq = { version = "3.4", default-features = false, features = [
+  "rustls",
+], optional = true }
+walkdir = "2.5"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+
+# Smallest binary: `cargo build --profile small`.
+[profile.small]
+inherits = "release"
+opt-level = "z"
