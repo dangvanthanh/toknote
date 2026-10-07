@@ -1,6 +1,6 @@
 # Tok Note
 
-Privacy-first terminal tool that reads local, logs and shows tokens, estimated cost, and 5h / weekly usage limits with reset times.
+Privacy-first terminal tool that reads local logs and shows tokens, estimated cost, and 5h / weekly usage limits with reset times.
 
 - [Claude Code](https://claude.com/claude-code)
 - [Codex](https://openai.com/codex)
@@ -15,7 +15,7 @@ Only tools with local data are shown.
 
   $48.20 est · 9.4M tokens · Oct 1–5
 
- › Claude   $31.10   5.2M
+ › Claude   $31.10   6.2M
      5h  ██░░░░░░░░░░  20% used  resets in 1h 12m · 17:05
      7d  ██████░░░░░░  47% used  resets Tue 08:00
 
@@ -28,19 +28,13 @@ Only tools with local data are shown.
 
 ## Install
 
-```sh
-# Rust 1.99.0 (pinned in rust-toolchain.toml); macOS or Linux. SQLite is bundled.
-cargo build --release            # or --profile small for the smallest binary
-# Optional install:
-mkdir -p ~/.local/bin
-install -m755 target/release/toknote ~/.local/bin/toknote
-# or: cargo install --path .
+macOS or Linux, Rust 1.99.0 (pinned in `rust-toolchain.toml`):
 
-# Offline-only binary with no network code at all:
-cargo build --release --no-default-features
+```sh
+cargo install --path .
 ```
 
-See the [guide](docs/guide.md) for running from source, toolchain overrides and environment variables.
+The [guide](docs/guide.md) covers build profiles, an offline-only build, running from source, toolchain overrides and environment variables.
 
 ## Usage
 
@@ -61,9 +55,9 @@ Claude $31.10 6.2M   5h ↻14:30 est
 OpenAI $17.10 3.2M   5h 82% used ↻16:05 · 7d 53% used ↻Mon 08:00
 ```
 
-- Periods use your local timezone. Weeks start Monday. `week`/`month` are calendar periods; `7d`/`30d` are rolling.
-- TUI keys: `d/w/m` period, `↑/↓` + `enter` per-model breakdown, `r` refresh, `l` live (asks first), `q` / `Esc` / `Ctrl-C` quit. The header shows the version and these keys; the key line is cut off in terminals narrower than about 68 columns.
-- Every tool shows **percent used**, matching JSON/cache `used_pct`. Bars use soft pastel colors: green below 50% used, yellow from 50%, red from 80%.
+- Periods use your local time zone. `today`, `week` (from Monday) and `month` are calendar periods; `7d` / `30d` are rolling.
+- TUI keys: `d/w/m` period, `↑/↓` select a tool, `Enter` per-model breakdown, `r` rescan logs, `l` live limits (asks first), `q` / `Esc` / `Ctrl-C` quit.
+- Limits always show **percent used** (JSON/cache `used_pct`). Bars are green below 50% used, yellow from 50%, red from 80%.
 - Reset times within a day are relative and refresh every 30s.
 
 ## Limits
@@ -80,30 +74,28 @@ OpenAI $17.10 3.2M   5h 82% used ↻16:05 · 7d 53% used ↻Mon 08:00
 
 ## Privacy
 
-- No network unless you pass `--live` (or confirm `l` in the TUI).
-- Reads usage fields only, never message content.
+- No network unless you pass `--live` (or confirm `l` in the TUI). A `--no-default-features` build contains no network code at all.
+- Reads usage fields only, never message content. OpenCode's database is opened read-only.
 - No telemetry. Prices are compiled into the binary.
-- OpenCode's SQLite database is opened read-only, and only usage fields are queried.
 - The only file toknote writes is `~/.cache/toknote/live.json` (mode 0600, limits only), and only with `--live`.
 
 ## Known limitations
 
-- Tokens and cost cover local sessions only. Codex cloud tasks (ChatGPT-hosted) and usage on other machines leave no local token data.
-- Limits are account-wide, so `--live` Codex percentages can be high while local tokens are low. This is expected.
-- Offline OpenAI limits come from the newest Codex log and assume `0% used` after a reset if Codex hasn't run locally since. This is not a current account reading; use `--live`.
-- Claude offline limits are an estimate: 5h reset time only, no percent or weekly window.
-- Command Code offline limits are estimates (reset times only). Its cost is Command Code's own recorded estimate; credit plans bill in credits. Command Code support was built from the CLI's bundled code and isn't yet verified against real session files.
-- OpenCode: free and subscription models record `$0.00`. No usage limits are shown (OpenCode Go caps have no public endpoint). Only `opencode.db` is read, not the legacy JSON store.
-- Cost is the API-equivalent estimate (`est.`). Subscription users don't pay it. Models without a published price show `?`.
+- Tokens and cost cover local sessions only. Codex cloud tasks and usage on other machines leave no local token data ([details](docs/models/openai.md#cloud-tasks)).
+- Limits are account-wide, so `--live` percentages can be high while local tokens are low.
+- Offline OpenAI limits come from the newest Codex log and show `0% used` once their reset has passed, even if Codex hasn't run since. Use `--live` for a current reading.
+- Claude and Command Code offline limits are estimates: reset times only, no percent.
+- Cost is an API-equivalent estimate (`est.`); subscription users don't pay it. Models without a published price show `?`. Command Code and OpenCode costs are the tools' own recorded estimates; OpenCode free and subscription models record `$0.00`.
+- Command Code support was built from the CLI's bundled code and isn't yet verified against real session files ([details](docs/models/commandcode.md)).
+- OpenCode: no usage limits (OpenCode Go caps have no public endpoint), and only `opencode.db` is read, not the legacy JSON store ([details](docs/models/opencode.md)).
+- The TUI clips long lines instead of wrapping: the key hints below about 68 columns, the empty-state message below about 85.
 
 ## Docs
 
-- [Guide](docs/guide.md): build, run, install
-- [Architecture](docs/architecture.md)
-- [Claude Code data](docs/models/claude.md)
-- [OpenAI (Codex) data](docs/models/openai.md)
-- [Command Code data](docs/models/commandcode.md)
-- [OpenCode data](docs/models/opencode.md)
+- [Guide](docs/guide.md): build, run, install, environment
+- [Architecture](docs/architecture.md): internals
+- Data formats: [Claude Code](docs/models/claude.md), [OpenAI (Codex)](docs/models/openai.md), [Command Code](docs/models/commandcode.md), [OpenCode](docs/models/opencode.md)
+- [AGENTS.md](AGENTS.md): contributor rules and verification
 
 ## License
 

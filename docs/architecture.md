@@ -1,5 +1,7 @@
 # Architecture
 
+Internals. User-facing behavior (usage, keys, limits per tool, known limitations) is in the [README](../README.md); per-source formats are in [models/](models/).
+
 ## Data flow
 
 ```
@@ -84,12 +86,9 @@ Times are UTC epoch microseconds. JSON emits RFC 3339, with 0/3/6 fractional dig
 
 Displayed numbers round the shortest round-trip decimal half up (`model::fixed`: `2.15M` → `2.2M`, `82.5%` → `83%`). JSON floats are the shortest round-trip decimal, always with a fraction (`1.0`).
 
-## Periods
+## Aggregation
 
-- `today`: local midnight → now
-- `week`: Monday 00:00 local → now
-- `month`: 1st 00:00 local → now
-- `7d` / `30d`: rolling, now − N days → now
+`today`, `week` and `month` start at local midnight of the day, Monday or 1st; `7d` / `30d` start at now − N days. All end at now.
 
 Rows group by `(tool, model)`, and model suffixes like `[1m]` are kept as separate rows. Zero-token events are dropped. Model rows sort by tokens descending, then model name for deterministic ties. Token sums saturate at `u64::MAX` instead of overflowing on corrupt counters.
 
@@ -99,13 +98,9 @@ A cost recorded in the log (`Event.cost_usd`, from Command Code and OpenCode) is
 
 ## Limits
 
-| Origin | Source                                                   |
-| ------ | -------------------------------------------------------- |
-| `log`  | Codex: newest `rate_limits` in local rollouts            |
-| `est`  | Claude 5h, Command Code 5h + 7d, from local timestamps   |
-| `live` | Claude / Codex / Command Code usage endpoints (`--live`) |
+Which tool gets which origin (`log`, `est`, `live`) is in the [README](../README.md#limits).
 
-- `used_pct` always means percent consumed, and every tool displays it as `% used`, with bars filling by consumption. Bar colors (green below 50%, yellow 50–79%, red 80% and up) and `limit reached` (100%) use the same value. The tool identifier is `openai`.
+- `used_pct` always means percent consumed. Displayed `% used`, bar fill, bar color and `limit reached` (100%) all derive from it.
 - A logged/cached window whose reset has passed becomes `used_pct: 0` with no reset time (displayed as `0% used`). This is a stale-data assumption, not proof of current account usage; use `--live`.
 - `aggregate::estimates(scan, now)`: walk the tool's events sorted by time. A window starts at the first event at or after the previous window's end and lasts 5h or 7d. If the last window hasn't ended, show its reset time and tokens. This matches how both Claude and Command Code open windows on the first request.
 
@@ -127,8 +122,7 @@ A cost recorded in the log (`Event.cost_usd`, from Command Code and OpenCode) is
 
 - Built with `ratatui` on the `crossterm` backend. Each frame is a list of styled lines rendered as one `Paragraph`; ratatui diffs frames, so redraws don't flicker, and clips lines to the terminal width and height.
 - Colors come from one soft pastel truecolor palette in `tui/ui.rs`: blue `#89b4fa`, green `#a6e3a1`, yellow `#f9e2af`, red `#f38ba8`. Blue (bold) marks the selection, the active period tab and the period total; yellow is used for notes; usage bars use green / yellow / red.
-- Header: a two-row "TN" logo (T blue, N yellow). Row one has the version (from `Cargo.toml`) and the period tabs, right-aligned; row two has the key hints.
-- Keys: `d/w/m` period, `↑/↓` select, `Enter` per-model rows, `r` rescan logs, `l` live, `q` / `Esc` / `Ctrl-C` quit.
+- Header: a two-row "TN" logo (T blue, N yellow). Row one has the version (`features::VERSION`) and the period tabs, right-aligned; row two has the key hints (`KEYS`).
 - `l` asks `Fetch limits from Anthropic, OpenAI and Command Code? y/n` once per session. The prompt appears at the bottom; any other key cancels it, and `Ctrl-C` quits.
 - Status line: live limits show the oldest live age once, `limits: live · 2m ago · l off`. Mixed sources list only local fallbacks: `limits: live · 2m ago · local: Claude · l off`. OpenCode is excluded because it has no limits. Offline: `limits: local logs · press l for live` (no hint in offline-only builds).
 - Redraws on each key, on resize (crossterm resize events), and every 30s so relative reset times stay current. Logs are rescanned only on `r`. Model names and notes have control characters replaced before display.
@@ -139,11 +133,3 @@ A cost recorded in the log (`Event.cost_usd`, from Command Code and OpenCode) is
 - Malformed lines that pass the substring pre-filter are skipped and counted per file (`--verbose`). With `--redact`, the path prints as `claude`, `openai`, `commandcode` or `opencode`. An unreadable OpenCode database counts as one skipped entry.
 - Missing log directories aren't errors; that tool is hidden. If no tool has logs, toknote shows the empty state.
 - Stdout write errors (closed pipe) are ignored; Rust already ignores `SIGPIPE`.
-
-## Known limitations
-
-- Tokens and cost cover local sessions only. See [openai.md](models/openai.md#cloud-tasks) for OpenAI cloud tasks.
-- Limits are account-wide; offline limits go stale; Claude and Command Code offline limits are estimates.
-- Command Code support is built from the CLI's bundled code, not real session files. See [commandcode.md](models/commandcode.md).
-- OpenCode has no limits, and only `opencode.db` is read. See [opencode.md](models/opencode.md).
-- The TUI clips long lines instead of wrapping: the key hints below about 68 columns, and the empty-state message below about 85.

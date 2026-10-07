@@ -4,7 +4,7 @@
 
 Implementation: `src/sources/commandcode.rs`, `src/live.rs` (`commandcode()`), `src/aggregate.rs` (`estimates`).
 
-> The formats below were read from the CLI's bundled code (`command-code` 1.74.2), not from real session files. The parser was checked against a hand-written session. Re-check against real logs when possible.
+> The formats below were read from the CLI's bundled code (`command-code` 1.74.2), not from real session files or a real API response. The parser was checked against a hand-written session. Re-check against real logs when possible.
 
 ## Logs
 
@@ -44,7 +44,7 @@ Other entry types (`model_change`, `effort_change`, compaction, custom) are igno
 
 ## Mapping
 
-| Event       | Field                                                            |
+| Event            | Field                                                            |
 | ---------------- | ---------------------------------------------------------------- |
 | `input`          | `inputTokens − cacheReadTokens − cacheWriteTokens` (≥ 0)         |
 | `output`         | `outputTokens`                                                   |
@@ -102,9 +102,3 @@ toknote estimates both windows from local timestamps, using the same rule as Cla
 - Percent is `used / cap × 100`, capped at 100. `resetAt` is read as epoch milliseconds or seconds, or as RFC 3339. The CLI compares it to `Date.now()`, so it's most likely milliseconds.
 - `limited: false` or a missing `windowLimits` gives the note `commandcode: no plan limits`.
 - On 401/403, run `cmd login`.
-
-## Known limitations
-
-- Not yet verified against real session files or a real API response. See the note at the top.
-- Cost is Command Code's own estimate. Credit-plan users are billed in credits, not these dollars.
-- Offline limits are estimates with no percent. Use `--live` for real credit usage.

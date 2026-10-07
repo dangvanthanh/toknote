@@ -8,7 +8,7 @@ Implementation: `src/sources/opencode.rs` (`rusqlite` with its bundled SQLite).
 
 - Database: `$XDG_DATA_HOME/opencode/opencode.db` (default `~/.local/share/opencode/opencode.db`, also on macOS). It's SQLite in WAL mode, managed by Drizzle.
 - Opened **read-only** (`SQLITE_OPEN_READ_ONLY`), so it's safe while OpenCode is running.
-- The legacy JSON store (`~/.local/share/opencode/storage/message/<session>/<msg>.json`) is **not read**. OpenCode migrates it into the database. Verified locally: all 737 legacy assistant messages are present in `opencode.db`.
+- The legacy JSON store (`~/.local/share/opencode/storage/message/<session>/<msg>.json`) is **not read**. OpenCode migrates it into the database, so only data from an install never upgraded past the migration is missed. Verified locally: all 737 legacy assistant messages are present in `opencode.db`.
 
 ### Tables
 
@@ -60,7 +60,7 @@ WHERE json_extract(data, '$.role') = 'assistant';
 
 ## Mapping
 
-| Event       | Field                                  |
+| Event            | Field                                  |
 | ---------------- | -------------------------------------- |
 | `input`          | `tokens.input` (already excludes cache) |
 | `output`         | `tokens.output + tokens.reasoning`     |
@@ -80,16 +80,10 @@ WHERE json_extract(data, '$.role') = 'assistant';
 
 ## Cost
 
-OpenCode records `cost` per message, computed from [models.dev](https://models.dev) prices, and toknote uses it as is (labeled `est.`). Free models (e.g. Zen `big-pickle`, `*-free`) and subscription providers (e.g. `zai-coding-plan`) record `0`, which shows as `$0.00`, not `?`. toknote has no OpenCode price table.
+OpenCode records `cost` per message, computed from [models.dev](https://models.dev) prices, and toknote uses it as is (labeled `est.`). Free models (e.g. Zen `big-pickle`, `*-free`) and subscription providers (e.g. `zai-coding-plan`) record `0`, which shows as `$0.00`, not `?`, and isn't an API-equivalent price. toknote has no OpenCode price table.
 
 ## Limits
 
 None. OpenCode itself has no usage limits. It uses your provider's.
 
 OpenCode Go (a $10/mo subscription) has dollar-value caps: 5h $12, weekly $30, monthly $60 ([docs](https://opencode.ai/docs/go/)). These are server-side, with no documented endpoint, and their weekly and monthly boundaries are server-defined, so toknote shows neither an estimate nor live data. `--live` skips OpenCode.
-
-## Known limitations
-
-- Only `opencode.db` is read. Data that exists only in the legacy JSON store (OpenCode before the SQLite migration, never upgraded) isn't counted.
-- `$0.00` for free and subscription models reflects OpenCode's recorded cost, not an API-equivalent price.
-- No usage limits, including OpenCode Go caps.

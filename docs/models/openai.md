@@ -2,7 +2,7 @@
 
 The text output and TUI label this tool **OpenAI**, and its JSON/cache/redaction identifier is `openai`. Codex paths (`$CODEX_HOME`, `~/.codex`) and credentials are unchanged.
 
-Display percentages and bars show **percent used** (`used_percent`), labeled `% used`, like every other tool. For example, `used_percent: 4` shows as **4% used**. The [Codex status UI](https://github.com/openai/codex/blob/main/codex-rs/tui/src/status/rate_limits.rs) shows quota remaining instead (`96% left`); toknote doesn't. JSON/cache `used_pct` is the same value. Offline values may be stale; opt into `--live` for current account-wide limits.
+`used_percent` maps directly to `used_pct`: `used_percent: 4` shows as **4% used**, where the [Codex status UI](https://github.com/openai/codex/blob/main/codex-rs/tui/src/status/rate_limits.rs) shows `96% left`.
 
 Implementation: `src/sources/openai.rs`, `src/live.rs` (`openai()`), `src/pricing.rs`.
 
@@ -43,7 +43,7 @@ Implementation: `src/sources/openai.rs`, `src/live.rs` (`openai()`), `src/pricin
 
 ## Mapping
 
-| Event       | Field                                                                    |
+| Event            | Field                                                                    |
 | ---------------- | ------------------------------------------------------------------------ |
 | `input`          | `input_tokens − cached_input_tokens − cache_write_input_tokens` (≥ 0)    |
 | `output`         | `output_tokens` (already includes reasoning)                             |
@@ -63,10 +63,7 @@ Implementation: `src/sources/openai.rs`, `src/live.rs` (`openai()`), `src/pricin
 
 ## Cloud tasks
 
-Codex cloud tasks (ChatGPT-hosted threads) write **no rollout files**. Locally, Codex keeps only metadata in `~/.codex/sqlite/codex-dev.db` (`local_thread_catalog`, `host_id = chatgpt:…`): titles and timestamps, no token counts. The usage endpoint returns percentages only (`model_usage` just flags model availability). So:
-
-- Local tokens and cost exclude cloud tasks and other machines.
-- Limits are account-wide. Offline `log` limits go stale when Codex hasn't run locally, so use `--live`.
+Codex cloud tasks (ChatGPT-hosted threads) write **no rollout files**. Locally, Codex keeps only metadata in `~/.codex/sqlite/codex-dev.db` (`local_thread_catalog`, `host_id = chatgpt:…`): titles and timestamps, no token counts. The usage endpoint returns percentages only (`model_usage` just flags model availability). So local tokens and cost exclude cloud tasks, while limits (account-wide) include them.
 
 ## Live (`--live`)
 

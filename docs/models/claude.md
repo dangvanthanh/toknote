@@ -32,7 +32,7 @@ Implementation: `src/sources/claude.rs`, `src/live.rs` (`claude()`), `src/pricin
 
 ## Mapping
 
-| Event       | Field                                             |
+| Event            | Field                                             |
 | ---------------- | ------------------------------------------------- |
 | `input`          | `input_tokens`                                    |
 | `output`         | `output_tokens`                                   |
@@ -76,4 +76,4 @@ USD per 1M tokens, as of 2026-10-05, from [platform.claude.com pricing](https://
 | claude-opus-5       | 5     | 25     | 6.25     | 10       | 0.50       |
 | claude-sonnet-5     | 2     | 10     | 2.50     | 4        | 0.20       |
 | claude-opus-4-5…4-8 | 5     | 25     | 6.25     | 10       | 0.50       |
-| claude-sonnet-4-5/4-6 | 3   | 15     | 3.75     | 6        | 0.30       |
+| claude-sonnet-4-5…4-6 | 3   | 15     | 3.75     | 6        | 0.30       |
