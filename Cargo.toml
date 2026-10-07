@@ -5,7 +5,12 @@ edition = "2024"
 rust-version = "1.99.0"
 description = "Privacy-first token usage, estimated cost and limits from local coding-agent logs"
 license = "MIT"
-publish = false
+repository = "https://github.com/dangvanthanh/toknote"
+homepage = "https://github.com/dangvanthanh/toknote"
+readme = "README.md"
+keywords = ["claude", "codex", "tokens", "usage", "tui"]
+categories = ["command-line-utilities", "development-tools"]
+include = ["src/**/*.rs", "Cargo.toml", "Cargo.lock", "README.md", "LICENSE"]
 
 [features]
 default = ["live"]

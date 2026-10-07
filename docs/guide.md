@@ -34,7 +34,9 @@ cargo run --release -- 30d --json     # machine output
 ## Install
 
 ```sh
-cargo install --path .                                  # → ~/.cargo/bin/toknote
+cargo install toknote                                   # from crates.io → ~/.cargo/bin/toknote
+# or from a checkout
+cargo install --path .
 # or copy a built binary
 mkdir -p ~/.local/bin
 install -m755 target/release/toknote ~/.local/bin/toknote
