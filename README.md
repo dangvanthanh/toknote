@@ -28,9 +28,11 @@ Only tools with local data are shown.
 
 ## Install
 
-macOS or Linux, Rust 1.99.0 (pinned in `rust-toolchain.toml`):
+macOS or Linux, Rust 1.99.0 or newer:
 
 ```sh
+cargo install toknote
+# or from a checkout (uses the toolchain pinned in rust-toolchain.toml)
 cargo install --path .
 ```
 
